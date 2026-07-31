@@ -4,6 +4,7 @@ import com.browserhistory.core.BrowserHistory;
 import com.browserhistory.core.exceptions.NoForwardPageException;
 import com.browserhistory.core.exceptions.NoPreviousPageException;
 import com.browserhistory.model.PageNode;
+import com.browserhistory.core.exceptions.NoClosedTabsException;
 
 import java.util.Scanner;
 
@@ -47,11 +48,17 @@ public class CLIInterface {
                     history.clearHistory();
                     break;
                 case "8":
+                    handleCloseTab();
+                    break;
+                case "9":
+                    handleReopenTab();
+                    break;
+                case "10":
                     running = false;
                     System.out.println("Exiting Browser History Simulator. Goodbye!");
                     break;
                 default:
-                    System.out.println("Invalid choice. Please enter a number between 1 and 8.");
+                    System.out.println("Invalid choice. Please enter a number between 1 and 10.");
             }
         }
 
@@ -67,7 +74,9 @@ public class CLIInterface {
         System.out.println("5. Search");
         System.out.println("6. Show full history");
         System.out.println("7. Clear history");
-        System.out.println("8. Exit");
+        System.out.println("8. Close current tab");
+        System.out.println("9. Reopen last closed tab");
+        System.out.println("10. Exit");
         System.out.print("Enter your choice: ");
     }
 
@@ -114,6 +123,22 @@ public class CLIInterface {
             System.out.println("Found: " + result);
         } else {
             System.out.println("URL not found in history.");
+        }
+    }
+
+    private void handleCloseTab() {
+        try {
+            history.closeCurrentTab();
+        } catch (RuntimeException e) {
+            System.out.println("Cannot close tab: " + e.getMessage());
+        }
+    }
+
+    private void handleReopenTab() {
+        try {
+            history.reopenClosedTab();
+        } catch (NoClosedTabsException e) {
+            System.out.println("Cannot reopen: " + e.getMessage());
         }
     }
 }

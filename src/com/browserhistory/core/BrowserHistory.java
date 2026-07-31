@@ -3,6 +3,10 @@ package com.browserhistory.core;
 import com.browserhistory.core.exceptions.NoPreviousPageException;
 import com.browserhistory.core.exceptions.NoForwardPageException;
 
+import com.browserhistory.core.exceptions.NoClosedTabsException;
+
+import java.util.Stack;
+
 import com.browserhistory.model.PageNode;
 import java.util.HashMap;
 
@@ -12,12 +16,14 @@ public class BrowserHistory {
     private PageNode current;
     private int size;
     private HashMap<String, PageNode> urlMap;
+    private Stack<PageNode> closedTabs;
 
     public BrowserHistory() {
         this.head = null;
         this.current = null;
         this.size = 0;
         this.urlMap = new HashMap<>();
+        this.closedTabs = new Stack<>();
     }
 
     public void visit(String url, String title) {
@@ -102,6 +108,38 @@ public class BrowserHistory {
         size = 0;
         urlMap.clear();
         System.out.println("History cleared.");
+    }
+
+    public void closeCurrentTab() {
+        if (current == null) {
+            throw new RuntimeException("No tab currently open to close");
+        }
+
+        PageNode toClose = current;
+        closedTabs.push(toClose);
+        urlMap.remove(toClose.getUrl());
+
+        if (toClose.getPrev() != null) {
+            current = toClose.getPrev();
+            current.setNext(null);
+        } else {
+            // closing the only/first tab
+            current = null;
+            head = null;
+        }
+
+        size--;
+        System.out.println("Closed tab: " + toClose);
+    }
+
+    public void reopenClosedTab() {
+        if (closedTabs.isEmpty()) {
+            throw new NoClosedTabsException("No recently closed tabs to reopen");
+        }
+
+        PageNode lastClosed = closedTabs.pop();
+        visit(lastClosed.getUrl(), lastClosed.getTitle());
+        System.out.println("Reopened: " + lastClosed);
     }
 
     // Temporary helper method just for testing right now
